@@ -1,21 +1,14 @@
 <?php
 include_once 'Game.php';
 
-class GameGoldenMasterTest extends \PHPUnit_Framework_TestCase
+class GameGoldenMasterTest extends \PHPUnit\Framework\TestCase
 {
     private $master = 'master.txt';
-    private $expectedOutput = array();
     private $sample = 100;
     private $generation;
 
     public function setUp()
     {
-        $original = __DIR__ . '/GameRunner.php';
-        $inSandbox = __DIR__ . '/sandbox/GameRunner.php';
-        if (!file_exists($inSandbox)) {
-            exec("ln $original $inSandbox", $output, $returnCode);
-            $this->assertEquals(0, $returnCode, "Linking the GameRunner in the sandbox to avoid multiple include() calls failed.");
-        }
         if (!file_exists($this->master)) {
             $this->fp = fopen($this->master, 'a');
             $this->generation = true;
@@ -32,15 +25,14 @@ class GameGoldenMasterTest extends \PHPUnit_Framework_TestCase
 
     public function testSeveralThousandsIterationProduceTheSameResultsAsTheGoldStandard()
     {
-        $this->output = array();
         srand(0);
         for ($i = 0; $i < $this->sample; $i++) {
             $output = $this->runAndCaptureOutput();
-            $this->assertEqualToMaster($i, $output);
+            $this->assertEqualToMaster($output);
         }
     }
 
-    private function assertEqualToMaster($i, $output)
+    private function assertEqualToMaster($output)
     {
         if ($this->generation) {
             $this->storeInMaster($output);
@@ -49,9 +41,9 @@ class GameGoldenMasterTest extends \PHPUnit_Framework_TestCase
         }
     }
 
-    private function storeInMaster($run)
+    private function storeInMaster($output)
     {
-        fputcsv($this->fp, explode("\n", $run));
+        fputcsv($this->fp, explode("\n", $output));
     }
 
     private function loadMasterRun()
